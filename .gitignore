@@ -1,0 +1,7 @@
+/Text-Cadenceparser-*
+/.build
+/cover_db
+*~
+/.tdldb.bak
+/temp
+/.settings
