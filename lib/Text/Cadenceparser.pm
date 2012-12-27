@@ -236,9 +236,9 @@ sub list {
 
     my $messages = $self->get($type);
 
-    say "* Detected $type messages:" if ( keys $messages );
+    say "* Detected $type messages:" if ( keys %{$messages} );
 
-    foreach my $key ( keys $messages ) {
+    foreach my $key ( keys %{$messages} ) {
         $self->_nice_print( $key, $messages->{$key} );
     }
 }
@@ -279,8 +279,8 @@ sub report {
     say "     " . $self->_format_str("") . "\t(um2)\t(mW)\t(mW)";
     say "----------------------------------------------------------------";
 
-    foreach my $procent ( sort { $b <=> $a } keys $data->{detail} ) {
-        foreach my $item ( sort keys $data->{detail}->{$procent} ) {
+    foreach my $procent ( sort { $b <=> $a } keys %{$data->{detail}} ) {
+        foreach my $item ( sort keys %{$data->{detail}->{$procent}} ) {
             my $leaf = $data->{detail}->{$procent}->{$item};
             my $area   = $leaf->{area}    || '--';
             my $active = $leaf->{active}  || '--';
@@ -575,7 +575,7 @@ sub _sort_data {
 
     $self->{_presentation}->{namelength} = 0;
 
-    foreach my $entry ( keys $self->{_data}->{leaf} ) {
+    foreach my $entry ( keys %{$self->{_data}->{leaf}} ) {
         my $value      = $self->{_data}->{leaf}->{$entry}->{$key};
         my $percentage = $value / $total * 100;
 
