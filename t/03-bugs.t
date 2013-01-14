@@ -16,4 +16,10 @@ ok $parser, 'object created';
 
 stderr_unlike { $parser->report() }  qr/uninitialized/, 'Check small threshold';
 
+# Test empty file does not give errors
+$parser = Text::Cadenceparser->new(key => 'active', 'area_rpt' => 't/stim/area_100.rpt', 'power_rpt' => 't/stim/empty.rpt');
+ok $parser, 'object created';
+
+stderr_unlike { $parser->report() } qr/uninitialized/, 'Gracefully handle empty power file';
+
 done_testing();
