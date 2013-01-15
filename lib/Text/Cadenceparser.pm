@@ -451,6 +451,8 @@ sub _parse_power {
 
     close $fh;
 
+    croak "Power input report '$filename' was empty, please check it." if (!defined $self->{_data}->{root}->{active});
+
     return $filename;
 
 }
