@@ -1,4 +1,3 @@
-#dist.ini#
 Changes
 LICENSE
 MANIFEST
@@ -24,6 +23,7 @@ t/release-pod-no404s.t
 t/release-pod-syntax.t
 t/release-synopsis.t
 t/stim/area_100.rpt
+t/stim/empty.rpt
 t/stim/messages_elab_error.summary
 t/stim/messages_elab_info.summary
 t/stim/messages_elab_warning.summary

@@ -5,7 +5,7 @@ use autodie;
 
 package Text::Cadenceparser;
 {
-  $Text::Cadenceparser::VERSION = '1.06';
+  $Text::Cadenceparser::VERSION = '1.07';
 }
 
 use Carp qw/croak carp/;
@@ -336,6 +336,8 @@ sub _parse_power {
 
     close $fh;
 
+    croak "Power input report '$filename' was empty, please check it." if (!defined $self->{_data}->{root}->{active});
+
     return $filename;
 
 }
@@ -499,7 +501,7 @@ Text::Cadenceparser - Perl module to parse Cadence synthesis tool logfiles
 
 =head1 VERSION
 
-version 1.06
+version 1.07
 
 =head1 SYNOPSIS
 

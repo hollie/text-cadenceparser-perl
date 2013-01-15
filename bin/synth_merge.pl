@@ -51,7 +51,7 @@ synth_merge.pl - Merge and sort the area and power reports of Cadence synthesis 
 
 =head1 VERSION
 
-version 1.06
+version 1.07
 
 =head1 DESCRIPTION
 

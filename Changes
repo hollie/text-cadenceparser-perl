@@ -1,10 +1,41 @@
 ==================================================
-Changes from 2011-12-28 00:00:00 +0000 to present.
+Changes from 2012-01-16 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.06 at 2012-12-27 19:56:32 +0000
+version 1.07 at 2013-01-15 14:16:08 +0000
 -----------------------------------------
+
+  Change: 18ebb66f09fb15bbd3cdf91e6421c4fd80565330
+  Author: Lieven Hollevoet <hollie@lika.be>
+  Date : 2013-01-15 15:15:56 +0000
+
+    Bumped the version to 1.07 after bugfix 
+
+  Change: add3526e91d942f0adec62592ceafe7c998eccf0
+  Author: Lieven Hollevoet <hollie@lika.be>
+  Date : 2013-01-15 15:13:29 +0000
+
+    Bugfix: don't continue when the user passes an empty power input
+    file. 
+
+  Change: 05dfdb77c0d560636afdba616967255880344d3b
+  Author: Lieven Hollevoet <hollie@lika.be>
+  Date : 2013-01-14 16:39:12 +0000
+
+    Added test for gracefully handling empty power reports 
+
+  Change: d836ba04de1c8f485999f59894933962ea3b9237
+  Author: Lieven Hollevoet <hollie@lika.be>
+  Date : 2012-12-27 20:59:02 +0000
+
+    Ignore temp files from editor 
+
+  Change: 9b41279883e4579a5153f1ae6c52d19ba08c1ffb
+  Author: Lieven Hollevoet <hollie@lika.be>
+  Date : 2012-12-27 20:56:56 +0000
+
+    v1.06 
 
   Change: dfde0f41353aaf5b494d93b76806be66714cbee6
   Author: Lieven Hollevoet <hollie@lika.be>
@@ -23,6 +54,16 @@ version 1.06 at 2012-12-27 19:56:32 +0000
   Date : 2012-12-27 17:22:28 +0000
 
     Published to github 
+
+-----------------------------------------
+version 1.06 at 2012-12-27 19:56:57 +0000
+-----------------------------------------
+
+  Change: c8312c733ec33a24ae4ed871697d662269e01271
+  Author: Lieven Hollevoet <hollie@lika.be>
+  Date : 2012-12-27 20:56:57 +0000
+
+    Build results of 9b41279 (on master) 
 
 ================
 End of releases.

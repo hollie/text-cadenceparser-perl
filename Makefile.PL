@@ -12,6 +12,7 @@ my %WriteMakefileArgs = (
   "ABSTRACT" => "Perl module to parse Cadence synthesis tool logfiles",
   "AUTHOR" => "Lieven Hollevoet <hollie\@cpan.org>",
   "BUILD_REQUIRES" => {
+    "Test::Exception" => 0,
     "Test::More" => 0,
     "Test::Output" => 0
   },
@@ -20,8 +21,8 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Text-Cadenceparser",
   "EXE_FILES" => [
-    "bin/synth_log.pl",
-    "bin/synth_merge.pl"
+    "bin/synth_merge.pl",
+    "bin/synth_log.pl"
   ],
   "LICENSE" => "perl",
   "NAME" => "Text::Cadenceparser",
@@ -35,7 +36,7 @@ my %WriteMakefileArgs = (
     "strict" => 0,
     "warnings" => 0
   },
-  "VERSION" => "1.06",
+  "VERSION" => "1.07",
   "test" => {
     "TESTS" => "t/*.t"
   }
