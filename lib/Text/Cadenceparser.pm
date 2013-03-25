@@ -524,8 +524,6 @@ have a power consumption of more that 5% of the total power. The units that cont
 than 5% of the power will be merged into a single block and their resulting power consumption is also
 listed.
 
-=head1 METHODS
-
 =method C<new(%parameters)>
 
 This constructor returns a new Text::Cadenceparser object. Supported parameters are listed below
