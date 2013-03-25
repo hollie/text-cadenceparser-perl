@@ -5,7 +5,7 @@ use autodie;
 
 package Text::Cadenceparser;
 {
-  $Text::Cadenceparser::VERSION = '1.07';
+  $Text::Cadenceparser::VERSION = '1.08';
 }
 
 use Carp qw/croak carp/;
@@ -14,8 +14,6 @@ use Data::Dumper;
 use constant DEBUG => $ENV{TEXT_CADENCEPARSER_DEBUG};
 use constant DEBUG1 =>
   $ENV{TEXT_CADENCEPARSER_DEBUG1};    # more verbose debugging info
-
-# ABSTRACT: Perl module to parse Cadence synthesis tool logfiles
 
 
 sub new {
@@ -29,7 +27,7 @@ sub new {
 
     if ( defined $self->{folder} ) {
 
-   # When folder is defined, then we need to produce a synthesis report synopsis
+        # When folder is defined, then we need to produce a synthesis report synopsis
         $self->{_files_parsed} = $self->_read_logfiles();    # Gather the data
     } else {
 
@@ -78,7 +76,6 @@ sub new {
 
 sub files_parsed { shift->{_files_parsed} }
 
-
 sub count {
     my ( $self, $type ) = @_;
     my $count = keys %{ $self->{_msg}->{$type} };
@@ -115,7 +112,6 @@ sub overview {
 
 }
 
-
 sub get {
     my ( $self, $type ) = @_;
 
@@ -124,7 +120,6 @@ sub get {
       if ( $type ~~ [qw(area active leakage)] );
     return $self->{$type};    # Enable self-checking of parameters in tests
 }
-
 
 sub list {
     my ( $self, $type ) = @_;
@@ -138,14 +133,12 @@ sub list {
     }
 }
 
-
 sub slack {
     my ( $self, $clock ) = @_;
 
     return $self->{_slack}->{$clock}->{slack};
 
 }
-
 
 sub report {
     my ( $self, %p ) = @_;
@@ -304,16 +297,26 @@ sub _parse_power {
 
     my $line;
 
+    my $file_type = 'normal';
+
     # Skip until we enter the 'data' zone
     while (<$fh>) {
         $line = $_;
+
+	# Detect if we're reading a file in normal output mode or in verbose mode
+        $file_type = 'verbose' if (/Leakage\s+Internal\s+Net/);
+
         if ( $line =~ /\-{5}/ ) {
             last;
         }
     }
 
     # Now parse :-)
+    # Regexp for normal mode parsing
     my $regexp = '(\w+)\s+\w+\s+\d+\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)';
+
+    # In case the file is verbose mode output then we need another regexp!
+    $regexp = '(\w+)\s+\w+\s+\d+\s+([0-9]*\.?[0-9]+)\s+[0-9]*\.?[0-9]+\s+[0-9]*\.?[0-9]+\s+([0-9]*\.?[0-9]+)' if ($file_type eq 'verbose');
 
     while (<$fh>) {
         $line = $_;
@@ -356,7 +359,7 @@ sub _gather_entries {
     my $code;
 
   SKIP_HEADER: while (<$fh>) {
-        last if (/-----/);
+      last if (/-----/);
     }
 
   PARSE_ENTRIES: while ( my $line = <$fh> ) {
@@ -491,6 +494,8 @@ sub _sort_data {
 }
 1;
 
+# ABSTRACT: Perl module to parse Cadence synthesis tool logfiles
+
 __END__
 
 =pod
@@ -501,7 +506,7 @@ Text::Cadenceparser - Perl module to parse Cadence synthesis tool logfiles
 
 =head1 VERSION
 
-version 1.07
+version 1.08
 
 =head1 SYNOPSIS
 
@@ -611,6 +616,8 @@ Report the slack of the synthesis run for a specific clock net
 =head2 C<report()>
 
 Reports the reports/logs that are read
+
+=head1 METHODS
 
 =head1 AUTHOR
 

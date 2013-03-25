@@ -41,7 +41,7 @@ synth_log.pl - Create a short human-readable output of the synthesis logfiles
 
 =head1 VERSION
 
-version 1.07
+version 1.08
 
 =head1 AUTHOR
 

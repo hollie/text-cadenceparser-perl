@@ -16,4 +16,16 @@ ok $parser, 'object created';
 
 stdout_like { $parser->report() }  qr/vu1_mul.+\n.+vu2_mul/, 'Check sorting';
 
+# Test non-verbose power output parsing
+$parser = Text::Cadenceparser->new(key => 'active', power_rpt => 't/stim/non_verbose_power');
+ok $parser, 'object created';
+
+stdout_like {$parser->report() } qr/Total active : 45.125/, 'Non-verbose input format verified correctly';
+
+# Test verbose power output parsing
+$parser = Text::Cadenceparser->new(key => 'active', power_rpt => 't/stim/verbose_power');
+ok $parser, 'object created';
+
+stdout_like {$parser->report() } qr/Total active : 45.125/, 'Non-verbose input format verified correctly';
+
 done_testing();

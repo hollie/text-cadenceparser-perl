@@ -4,7 +4,7 @@
       "Lieven Hollevoet <hollie@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300028, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Dist::Zilla version 4.300031, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -58,6 +58,6 @@
          "web" : "https://github.com/hollie/text-cadenceparser-perl"
       }
    },
-   "version" : "1.07"
+   "version" : "1.08"
 }
 

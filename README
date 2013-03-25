@@ -3,7 +3,7 @@ NAME
     logfiles
 
 VERSION
-    version 1.07
+    version 1.08
 
 SYNOPSIS
     my $parser = Text::Cadenceparser->new(folder => './REPORTS');
@@ -94,6 +94,7 @@ METHODS
   "report()"
     Reports the reports/logs that are read
 
+METHODS
 AUTHOR
     Lieven Hollevoet <hollie@cpan.org>
 
