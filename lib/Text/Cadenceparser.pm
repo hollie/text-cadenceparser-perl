@@ -12,85 +12,6 @@ use constant DEBUG => $ENV{TEXT_CADENCEPARSER_DEBUG};
 use constant DEBUG1 =>
   $ENV{TEXT_CADENCEPARSER_DEBUG1};    # more verbose debugging info
 
-# ABSTRACT: Perl module to parse Cadence synthesis tool logfiles
-
-=head1 SYNOPSIS
-
-my $parser = Text::Cadenceparser->new(folder => './REPORTS');
-
-my $nr_warnings = $parser->count('warnings');
-
-my $warnings    = $parser->get('warnings');
-
-$parser->overview();    # Prints a global report of the parsing results
-
-$parser->list('error'); # Prints the errors to STDOUT
-
-
-=head1 DESCRIPTION
-
-Module to parse and filter Cadence synthesis tool reports. The idea is to present the user with a short
-and comprehensible overview of the synthesis results.
-
-The module supports two ways of working: either you pass the 'folder' parameter, in which case all
-files in that folder will be searched for basic synthesis status reporting.
-
-The other way of working is that you pass an area and/or power report file as parameter. The module
-then supports generating a compact overview of the results sorted based on a C<key> and a C<threshold>.
-
-As an example, consider a design that has been simulated for power results. Pass the are and power
-report files as parameter, and select as C<key> 'active' and C<threshold> '5'. The report will
-list all first-level design units that contribute to the active power consumption and that
-have a power consumption of more that 5% of the total power. The units that contribute less
-than 5% of the power will be merged into a single block and their resulting power consumption is also
-listed.
-
-
-=method C<new(%parameters)>
-
-This constructor returns a new Text::Cadenceparser object. Supported parameters are listed below
-
-=over
-
-=item folder
-
-The folder where to gather the logfiles. If this option is passed, the module will search
-through the folder and generate a short and comprehensive overview of the results of the last
-synthesis run. If you pass this parameter, other parameters will ignored.
-
-=item area_rpt
-
-Pass an area report file that will be used to gather area input. Not to be used in combination
-with the 'folder' parameter.
-
-=item power_rpt
-
-Pass a power report file that will be used to gather power input. Not to be used in combination
-with the 'folder' parameter.
-
-=item key
-
-Key to sort the area/power results. Possible options are
-
-=over
-
-=item active
-
-=item leakage
-
-=item area
-
-=back
-
-=item threshold
-
-The percentage-wise threshold of C<key> that the design units need to be above in order to be
-listed in the result table.
-
-
-=back
-
-=cut
 
 sub new {
     my ( $pkg, %p ) = @_;
@@ -103,7 +24,7 @@ sub new {
 
     if ( defined $self->{folder} ) {
 
-   # When folder is defined, then we need to produce a synthesis report synopsis
+        # When folder is defined, then we need to produce a synthesis report synopsis
         $self->{_files_parsed} = $self->_read_logfiles();    # Gather the data
     } else {
 
@@ -149,21 +70,8 @@ sub new {
 
 }
 
-=method C<files_parsed()>
-
-This method reports the number of files that were parsed when creating the object.
-
-=cut
 
 sub files_parsed { shift->{_files_parsed} }
-
-=method C<count($type)>
-
-This method returns the counted number of C<$type> that were parsed.
-
-C<$type> can be either 'info', 'warning' or 'error'.
-
-=cut
 
 sub count {
     my ( $self, $type ) = @_;
@@ -171,11 +79,6 @@ sub count {
     return $count;
 }
 
-=method C<overview()>
-
-This method returns an overview of all parsed messages.
-
-=cut
 
 sub overview {
     my ( $self, $type ) = @_;
@@ -206,14 +109,6 @@ sub overview {
 
 }
 
-=method C<get($type)>
-
-Returns a hash containing the messages of type C<$type>.
-
-C<$type> can be either 'info', 'warning' or 'error'.
-
-=cut
-
 sub get {
     my ( $self, $type ) = @_;
 
@@ -222,14 +117,6 @@ sub get {
       if ( $type ~~ [qw(area active leakage)] );
     return $self->{$type};    # Enable self-checking of parameters in tests
 }
-
-=method C<list($type)>
-
-List the messages of type C<$type> to STDOUT.
-
-C<$type> can be either 'info', 'warning' or 'error'.
-
-=cut
 
 sub list {
     my ( $self, $type ) = @_;
@@ -243,24 +130,12 @@ sub list {
     }
 }
 
-=method C<slack($clock)>
-
-Report the slack of the synthesis run for a specific clock net
-
-=cut
-
 sub slack {
     my ( $self, $clock ) = @_;
 
     return $self->{_slack}->{$clock}->{slack};
 
 }
-
-=method C<report()>
-
-Reports the reports/logs that are read
-
-=cut
 
 sub report {
     my ( $self, %p ) = @_;
@@ -605,3 +480,118 @@ sub _sort_data {
 
 }
 1;
+
+# ABSTRACT: Perl module to parse Cadence synthesis tool logfiles
+
+=head1 SYNOPSIS
+
+my $parser = Text::Cadenceparser->new(folder => './REPORTS');
+
+my $nr_warnings = $parser->count('warnings');
+
+my $warnings    = $parser->get('warnings');
+
+$parser->overview();    # Prints a global report of the parsing results
+
+$parser->list('error'); # Prints the errors to STDOUT
+
+
+=head1 DESCRIPTION
+
+Module to parse and filter Cadence synthesis tool reports. The idea is to present the user with a short
+and comprehensible overview of the synthesis results.
+
+The module supports two ways of working: either you pass the 'folder' parameter, in which case all
+files in that folder will be searched for basic synthesis status reporting.
+
+The other way of working is that you pass an area and/or power report file as parameter. The module
+then supports generating a compact overview of the results sorted based on a C<key> and a C<threshold>.
+
+As an example, consider a design that has been simulated for power results. Pass the are and power
+report files as parameter, and select as C<key> 'active' and C<threshold> '5'. The report will
+list all first-level design units that contribute to the active power consumption and that
+have a power consumption of more that 5% of the total power. The units that contribute less
+than 5% of the power will be merged into a single block and their resulting power consumption is also
+listed.
+
+=head1 METHODS
+
+=method C<new(%parameters)>
+
+This constructor returns a new Text::Cadenceparser object. Supported parameters are listed below
+
+=over
+
+=item folder
+
+The folder where to gather the logfiles. If this option is passed, the module will search
+through the folder and generate a short and comprehensive overview of the results of the last
+synthesis run. If you pass this parameter, other parameters will ignored.
+
+=item area_rpt
+
+Pass an area report file that will be used to gather area input. Not to be used in combination
+with the 'folder' parameter.
+
+=item power_rpt
+
+Pass a power report file that will be used to gather power input. Not to be used in combination
+with the 'folder' parameter.
+
+=item key
+
+Key to sort the area/power results. Possible options are
+
+=over
+
+=item active
+
+=item leakage
+
+=item area
+
+=back
+
+=item threshold
+
+The percentage-wise threshold of C<key> that the design units need to be above in order to be
+listed in the result table.
+
+
+=back
+
+=method C<files_parsed()>
+
+This method reports the number of files that were parsed when creating the object.
+
+=method C<count($type)>
+
+This method returns the counted number of C<$type> that were parsed.
+
+C<$type> can be either 'info', 'warning' or 'error'.
+
+=method C<overview()>
+
+This method returns an overview of all parsed messages.
+
+=method C<get($type)>
+
+Returns a hash containing the messages of type C<$type>.
+
+C<$type> can be either 'info', 'warning' or 'error'.
+
+=method C<list($type)>
+
+List the messages of type C<$type> to STDOUT.
+
+C<$type> can be either 'info', 'warning' or 'error'.
+
+=method C<slack($clock)>
+
+Report the slack of the synthesis run for a specific clock net
+
+=method C<report()>
+
+Reports the reports/logs that are read
+
+=cut
