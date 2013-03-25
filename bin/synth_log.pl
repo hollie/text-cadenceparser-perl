@@ -6,9 +6,6 @@ use 5.012;
 use autodie;
 use Text::Cadenceparser;
 
-# ABSTRACT: Create a short human-readable output of the synthesis logfiles
-# PODNAME: synth_log.pl
-
 if ( defined $ARGV[0] ) {
 
     # Create the object
@@ -30,3 +27,20 @@ if ( defined $ARGV[0] ) {
     die
 "Please pass the folder with the files that need to be parsed as command line option";
 }
+
+# ABSTRACT: Create a short human-readable output of the synthesis logfiles
+# PODNAME: synth_log.pl
+
+=head1 DESCRIPTION
+
+This scripts produces a list of warnings and errors that were encountered in the parsed folder.
+
+=head1 SYNOPSYS
+
+Usage:
+synth_log.pl <folder>
+
+Where <folder> needs to be the REPORTS folder of the synthesis run.
+
+=cut
+

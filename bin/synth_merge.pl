@@ -1,5 +1,42 @@
 #! /usr/bin/env perl
 
+use strict;
+use warnings;
+use 5.012;
+use autodie;
+
+use Pod::Help qw(-h --help);
+use Getopt::Std;
+use Text::Cadenceparser;
+
+
+my %opts;
+
+# Extract the power and area file options if they are passed.
+getopt('pa', \%opts);
+
+Pod::Help->help() if (!defined $opts{a} && !defined $opts{p});
+
+# Set defaul values for the mode based on what files are specced
+my $mode;
+$mode = 'area' if (defined $opts{a});
+$mode = 'active' if (defined $opts{p});
+
+# And override in case they are apssed as argument
+$mode      = $ARGV[0] || $mode;
+my $threshold = $ARGV[1] || '';
+
+
+my $parser = Text::Cadenceparser->new(
+    'key'       => $mode,
+    'threshold' => $threshold,
+    'area_rpt'  => $opts{a},
+    'power_rpt' => $opts{p}
+);
+$parser->report();
+
+exit;
+
 # ABSTRACT: Merge and sort the area and power reports of Cadence synthesis runs
 # PODNAME: synth_merge.pl
 
@@ -49,41 +86,3 @@ Some more details on the parameters:
 =back
 
 =cut
-
-use strict;
-use warnings;
-use 5.012;
-use autodie;
-
-use Pod::Help qw(-h --help);
-use Getopt::Std;
-use Text::Cadenceparser;
-
-
-my %opts;
-
-# Extract the power and area file options if they are passed.
-getopt('pa', \%opts);
-
-Pod::Help->help() if (!defined $opts{a} && !defined $opts{p});
-
-# Set defaul values for the mode based on what files are specced
-my $mode;
-$mode = 'area' if (defined $opts{a});
-$mode = 'active' if (defined $opts{p});
-
-# And override in case they are apssed as argument
-$mode      = $ARGV[0] || $mode;
-my $threshold = $ARGV[1] || '';
-
-
-my $parser = Text::Cadenceparser->new(
-    'key'       => $mode,
-    'threshold' => $threshold,
-    'area_rpt'  => $opts{a},
-    'power_rpt' => $opts{p}
-);
-$parser->report();
-
-exit;
-
