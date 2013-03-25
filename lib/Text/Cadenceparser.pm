@@ -294,16 +294,26 @@ sub _parse_power {
 
     my $line;
 
+    my $file_type = 'normal';
+
     # Skip until we enter the 'data' zone
     while (<$fh>) {
         $line = $_;
+
+	# Detect if we're reading a file in normal output mode or in verbose mode
+        $file_type = 'verbose' if (/Leakage\s+Internal\s+Net/);
+
         if ( $line =~ /\-{5}/ ) {
             last;
         }
     }
 
     # Now parse :-)
+    # Regexp for normal mode parsing
     my $regexp = '(\w+)\s+\w+\s+\d+\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)';
+
+    # In case the file is verbose mode output then we need another regexp!
+    $regexp = '(\w+)\s+\w+\s+\d+\s+([0-9]*\.?[0-9]+)\s+[0-9]*\.?[0-9]+\s+[0-9]*\.?[0-9]+\s+([0-9]*\.?[0-9]+)' if ($file_type eq 'verbose');
 
     while (<$fh>) {
         $line = $_;
@@ -346,7 +356,7 @@ sub _gather_entries {
     my $code;
 
   SKIP_HEADER: while (<$fh>) {
-        last if (/-----/);
+      last if (/-----/);
     }
 
   PARSE_ENTRIES: while ( my $line = <$fh> ) {
