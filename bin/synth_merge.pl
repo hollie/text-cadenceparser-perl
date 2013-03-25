@@ -1,9 +1,5 @@
 #! /usr/bin/env perl
 
-# ABSTRACT: Merge and sort the area and power reports of Cadence synthesis runs
-# PODNAME: synth_merge.pl
-
-
 use strict;
 use warnings;
 use 5.012;
@@ -41,6 +37,9 @@ $parser->report();
 
 exit;
 
+# ABSTRACT: Merge and sort the area and power reports of Cadence synthesis runs
+# PODNAME: synth_merge.pl
+
 __END__
 
 =pod
@@ -51,7 +50,7 @@ synth_merge.pl - Merge and sort the area and power reports of Cadence synthesis 
 
 =head1 VERSION
 
-version 1.08
+version 1.09
 
 =head1 DESCRIPTION
 

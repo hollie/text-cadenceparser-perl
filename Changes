@@ -3,8 +3,14 @@ Changes from 2012-03-25 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.08 at 2013-03-25 13:38:50 +0000
+version 1.09 at 2013-03-25 13:50:41 +0000
 -----------------------------------------
+
+  Change: cd1c221743d4003a2e2fe4053ce4d7bf39f1fd53
+  Author: Lieven Hollevoet <hollie@lika.be>
+  Date : 2013-03-25 14:50:36 +0000
+
+    Updated documentation of the executable scripts 
 
   Change: cdcdfba746596ae12c78cfa28ff2deb9b57450b0
   Author: Lieven Hollevoet <hollie@lika.be>
@@ -73,6 +79,16 @@ version 1.08 at 2013-03-25 13:38:50 +0000
   Date : 2012-12-27 17:22:28 +0000
 
     Published to github 
+
+-----------------------------------------
+version 1.08 at 2013-03-25 13:39:09 +0000
+-----------------------------------------
+
+  Change: 28c3fee2e9a92e8e0ff001c6b05a2ef6adc50352
+  Author: Lieven Hollevoet <hollie@lika.be>
+  Date : 2013-03-25 14:39:09 +0000
+
+    Build results of cdcdfba (on master) 
 
 -----------------------------------------
 version 1.07 at 2013-01-15 14:16:19 +0000
