@@ -3,7 +3,7 @@ NAME
     logfiles
 
 VERSION
-    version 1.09
+    version 1.11
 
 SYNOPSIS
     my $parser = Text::Cadenceparser->new(folder => './REPORTS');
@@ -36,6 +36,10 @@ DESCRIPTION
     have a power consumption of more that 5% of the total power. The units
     that contribute less than 5% of the power will be merged into a single
     block and their resulting power consumption is also listed.
+
+    For the power, area and leakage of the toplevel design (meaning the
+    total figure minus the numbers reported for the subunits) an entry
+    'toplevel' is added to the report.
 
 METHODS
   "new(%parameters)"
@@ -94,7 +98,6 @@ METHODS
   "report()"
     Reports the reports/logs that are read
 
-METHODS
 AUTHOR
     Lieven Hollevoet <hollie@cpan.org>
 

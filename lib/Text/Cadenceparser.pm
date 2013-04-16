@@ -5,7 +5,7 @@ use autodie;
 
 package Text::Cadenceparser;
 {
-  $Text::Cadenceparser::VERSION = '1.09';
+  $Text::Cadenceparser::VERSION = '1.11';
 }
 
 use Carp qw/croak carp/;
@@ -116,7 +116,7 @@ sub get {
     my ( $self, $type ) = @_;
 
     return $self->{_msg}->{$type} if ( $type ~~ [qw(info warning error)] );
-    return $self->{_data}->{root}->{$type}
+    return $self->{_data}->{root}->{$type}->{total}
       if ( $type ~~ [qw(area active leakage)] );
     return $self->{$type};    # Enable self-checking of parameters in tests
 }
@@ -271,10 +271,13 @@ sub _parse_area {
 
             #say "root: $1 \t$2";
             $self->{_data}->{root}->{name} = $1;
-            $self->{_data}->{root}->{area} = $2;
+            $self->{_data}->{root}->{area}->{total} = $2;
+            $self->{_data}->{root}->{area}->{sum_leaves} = 0;
         }
         if ( $line =~ /^\s\s$regexp/ ) {
-            $self->{_data}->{leaf}->{$1}->{area} = $2;
+            my $partial_area = $2;
+            $self->{_data}->{leaf}->{$1}->{area} = $partial_area;
+            $self->{_data}->{root}->{area}->{sum_leaves} += $partial_area;
         }
     }
 
@@ -325,21 +328,23 @@ sub _parse_power {
 # TODO check for same root name here as a test to see if area and power reports match.
 #say "root: $1 \t$2";
             $self->{_data}->{root}->{name}    = $1;
-            $self->{_data}->{root}->{leakage} = $2;
-            $self->{_data}->{root}->{active}  = $3;
+            $self->{_data}->{root}->{leakage}->{total} = $2;
+            $self->{_data}->{root}->{active}->{total}  = $3;
+            $self->{_data}->{root}->{active}->{sum_leaves} = 0;
 
         }
 
         if ( $line =~ /^\s\s$regexp/ ) {
             $self->{_data}->{leaf}->{$1}->{leakage} = $2;
             $self->{_data}->{leaf}->{$1}->{active}  = $3;
-
+            $self->{_data}->{root}->{leakage}->{sum_leaves} += $2;
+            $self->{_data}->{root}->{active}->{sum_leaves} += $3;
         }
     }
 
     close $fh;
 
-    croak "Power input report '$filename' was empty, please check it." if (!defined $self->{_data}->{root}->{active});
+    croak "Power input report '$filename' was empty, please check it." if (!defined $self->{_data}->{root}->{active}->{total});
 
     return $filename;
 
@@ -465,6 +470,21 @@ sub _sort_data {
 
     $self->{_presentation}->{namelength} = 0;
 
+    # Insert an entry for the toplevel so that it get reported if required
+    my ($top_area, $top_active, $top_leakage);
+    $top_area    = $self->{_data}->{root}->{area}->{total}    - $self->{_data}->{root}->{area}->{sum_leaves}    if (defined $self->{_data}->{root}->{area});
+    $top_active  = $self->{_data}->{root}->{active}->{total}  - $self->{_data}->{root}->{active}->{sum_leaves}  if (defined $self->{_data}->{root}->{active});
+    $top_leakage = $self->{_data}->{root}->{leakage}->{total} - $self->{_data}->{root}->{leakage}->{sum_leaves} if (defined $self->{_data}->{root}->{leakage});
+
+    # Ensure the right format is used
+    $top_area    = sprintf("%d", $top_area)       if (defined $top_area);
+    $top_active  = sprintf("%1.3f", $top_active)  if (defined $top_active);
+    $top_leakage = sprintf("%1.3f", $top_leakage) if (defined $top_leakage);
+
+    $self->{_data}->{leaf}->{'toplevel'}->{area} = $top_area;
+    $self->{_data}->{leaf}->{'toplevel'}->{active} = $top_active;
+    $self->{_data}->{leaf}->{'toplevel'}->{leakage} = $top_leakage;
+
     foreach my $entry ( keys %{$self->{_data}->{leaf}} ) {
         my $value      = $self->{_data}->{leaf}->{$entry}->{$key};
         my $percentage = $value / $total * 100;
@@ -506,7 +526,7 @@ Text::Cadenceparser - Perl module to parse Cadence synthesis tool logfiles
 
 =head1 VERSION
 
-version 1.09
+version 1.11
 
 =head1 SYNOPSIS
 
@@ -537,6 +557,9 @@ list all first-level design units that contribute to the active power consumptio
 have a power consumption of more that 5% of the total power. The units that contribute less
 than 5% of the power will be merged into a single block and their resulting power consumption is also
 listed.
+
+For the power, area and leakage of the toplevel design (meaning the total figure minus the numbers
+reported for the subunits) an entry 'toplevel' is added to the report.
 
 =head1 METHODS
 
@@ -616,8 +639,6 @@ Report the slack of the synthesis run for a specific clock net
 =head2 C<report()>
 
 Reports the reports/logs that are read
-
-=head1 METHODS
 
 =head1 AUTHOR
 
