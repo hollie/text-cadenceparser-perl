@@ -16,6 +16,10 @@ ok $parser, 'object created';
 
 stdout_like { $parser->report() }  qr/vu1_mul.+\n.+vu2_mul/, 'Check sorting';
 
+# Ensure we have a separate part reporting the toplevel logic
+$parser = Text::Cadenceparser->new(key => 'area', 'area_rpt' => 't/stim/area_100.rpt', 'threshold' => 0.00005);
+stdout_like {$parser->report() } qr/toplevel/, 'Toplevel reported';
+
 # Test non-verbose power output parsing
 $parser = Text::Cadenceparser->new(key => 'active', power_rpt => 't/stim/non_verbose_power');
 ok $parser, 'object created';
