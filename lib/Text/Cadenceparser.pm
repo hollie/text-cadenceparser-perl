@@ -178,6 +178,13 @@ sub report {
 
 }
 
+sub get_final {
+    my ( $self, $key) = @_;
+
+    return $self->{_final}->{$key};
+
+}
+
 # Private function to display a single message to STDOUT
 sub _nice_print {
     my ( $self, $key, $message ) = @_;
@@ -220,6 +227,13 @@ sub _read_logfiles {
     foreach my $file (@timing_logs) {
         $self->_gather_slack($file);
         push @files, $file;
+    }
+
+    my $final_file = $foldername . "/final.rpt";
+
+    if (-e $foldername . "/final.rpt") {
+        $self->_gather_final($final_file);
+        push @files, $final_file;
     }
 
     return scalar @files;
@@ -436,6 +450,77 @@ sub _gather_slack {
 
 }
 
+# Extract the information from the final.rpt file
+sub _gather_final {
+    my ( $self, $fname ) = @_;
+
+    print "Gathering messages in file '$fname'\n" if DEBUG;
+
+    open my $fh, '<', $fname
+      or croak "Could not open file '$fname' for reading: $!";
+
+    my $match_col;
+
+    my $line;
+
+    # We want to know in what column the total ('final') data is present.
+    # We need to autodetect this because it differes depending on the flow type that was run
+    DETECT_COLUMN: while ($line = <$fh>) {
+        if ($line =~ /Metric/) {
+            my @columns = split /\s+/, $line;
+            # Use an index hash to find what the index is of the column we're looking for
+            my %indhash;
+            @indhash{@columns} = (0 .. $#columns);
+
+            $match_col = $indhash{'final'};
+
+            last;
+        }
+    }
+
+    # Data begins until next empty line
+    FETCH_DATA : while ($line = <$fh>) {
+        if ($line =~ /====/) {
+            # Skip separator lines
+            next;
+        } elsif ($line eq "\n") {
+            # Stop processing on empty line beacuse we need to switch the handling of the data from here on (other format)
+            last;
+        } else {
+            # Data -> process it
+            # First the metric (everything before the :)
+            my @data = split /:/, $line;
+            my $metric = $data[0];
+
+            # Remove leading spaces in the metric;
+            $metric =~ s/^\s+//;
+
+            # Then the values
+            my @columns = split /\s+/, $data[1];
+
+            my $value  = $columns[$match_col];
+
+            $self->{_final}->{$metric} = $value;
+        }
+    }
+
+    # TODO Check if we need to strip the untis from the metric and put them on another place in the hash.
+
+    # skip 3 lines
+    #$line = <$fh>;
+    #$line = <$fh>;
+    #$line = <$fh>;
+
+    # TODO Fetch the totals and store them too.
+    #PARSE_TOTALS: while ($line = <$fh>) {
+    #    if ($line =~ /^([^:]):\s+(\.+)/) {
+    #        $self->{_final}->{$1} = $2;
+    #    }
+    #}
+
+    close $fh;
+}
+
 # Nicely print a string
 sub _format_str {
     my ( $self, $val ) = @_;
@@ -625,4 +710,7 @@ Report the slack of the synthesis run for a specific clock net
 
 Reports the reports/logs that are read
 
+=method C<get_final($key)>
+
+Report the valus of a C<$key> that was extracted from the final.rpt report. Returns the value or C<undef> in case the value does not exist.
 =cut
