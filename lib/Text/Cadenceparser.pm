@@ -5,7 +5,7 @@ use autodie;
 
 package Text::Cadenceparser;
 {
-  $Text::Cadenceparser::VERSION = '1.06';
+  $Text::Cadenceparser::VERSION = '1.12';
 }
 
 use Carp qw/croak carp/;
@@ -14,8 +14,6 @@ use Data::Dumper;
 use constant DEBUG => $ENV{TEXT_CADENCEPARSER_DEBUG};
 use constant DEBUG1 =>
   $ENV{TEXT_CADENCEPARSER_DEBUG1};    # more verbose debugging info
-
-# ABSTRACT: Perl module to parse Cadence synthesis tool logfiles
 
 
 sub new {
@@ -29,7 +27,7 @@ sub new {
 
     if ( defined $self->{folder} ) {
 
-   # When folder is defined, then we need to produce a synthesis report synopsis
+        # When folder is defined, then we need to produce a synthesis report synopsis
         $self->{_files_parsed} = $self->_read_logfiles();    # Gather the data
     } else {
 
@@ -78,7 +76,6 @@ sub new {
 
 sub files_parsed { shift->{_files_parsed} }
 
-
 sub count {
     my ( $self, $type ) = @_;
     my $count = keys %{ $self->{_msg}->{$type} };
@@ -115,16 +112,14 @@ sub overview {
 
 }
 
-
 sub get {
     my ( $self, $type ) = @_;
 
     return $self->{_msg}->{$type} if ( $type ~~ [qw(info warning error)] );
-    return $self->{_data}->{root}->{$type}
+    return $self->{_data}->{root}->{$type}->{total}
       if ( $type ~~ [qw(area active leakage)] );
     return $self->{$type};    # Enable self-checking of parameters in tests
 }
-
 
 sub list {
     my ( $self, $type ) = @_;
@@ -138,14 +133,12 @@ sub list {
     }
 }
 
-
 sub slack {
     my ( $self, $clock ) = @_;
 
     return $self->{_slack}->{$clock}->{slack};
 
 }
-
 
 sub report {
     my ( $self, %p ) = @_;
@@ -185,6 +178,13 @@ sub report {
     say $self->_format_int( $data->{stash}->{percent} ) . " : "
       . $self->_format_str('<other units>')
       . "\t$stash_area\t$stash_active\t$stash_leakage";
+
+}
+
+sub get_final {
+    my ( $self, $key) = @_;
+
+    return $self->{_final}->{$key};
 
 }
 
@@ -230,6 +230,13 @@ sub _read_logfiles {
     foreach my $file (@timing_logs) {
         $self->_gather_slack($file);
         push @files, $file;
+    }
+
+    my $final_file = $foldername . "/final.rpt";
+
+    if (-e $foldername . "/final.rpt") {
+        $self->_gather_final($final_file);
+        push @files, $final_file;
     }
 
     return scalar @files;
@@ -278,10 +285,13 @@ sub _parse_area {
 
             #say "root: $1 \t$2";
             $self->{_data}->{root}->{name} = $1;
-            $self->{_data}->{root}->{area} = $2;
+            $self->{_data}->{root}->{area}->{total} = $2;
+            $self->{_data}->{root}->{area}->{sum_leaves} = 0;
         }
         if ( $line =~ /^\s\s$regexp/ ) {
-            $self->{_data}->{leaf}->{$1}->{area} = $2;
+            my $partial_area = $2;
+            $self->{_data}->{leaf}->{$1}->{area} = $partial_area;
+            $self->{_data}->{root}->{area}->{sum_leaves} += $partial_area;
         }
     }
 
@@ -304,16 +314,26 @@ sub _parse_power {
 
     my $line;
 
+    my $file_type = 'normal';
+
     # Skip until we enter the 'data' zone
     while (<$fh>) {
         $line = $_;
+
+	# Detect if we're reading a file in normal output mode or in verbose mode
+        $file_type = 'verbose' if (/Leakage\s+Internal\s+Net/);
+
         if ( $line =~ /\-{5}/ ) {
             last;
         }
     }
 
     # Now parse :-)
+    # Regexp for normal mode parsing
     my $regexp = '(\w+)\s+\w+\s+\d+\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)';
+
+    # In case the file is verbose mode output then we need another regexp!
+    $regexp = '(\w+)\s+\w+\s+\d+\s+([0-9]*\.?[0-9]+)\s+[0-9]*\.?[0-9]+\s+[0-9]*\.?[0-9]+\s+([0-9]*\.?[0-9]+)' if ($file_type eq 'verbose');
 
     while (<$fh>) {
         $line = $_;
@@ -322,19 +342,23 @@ sub _parse_power {
 # TODO check for same root name here as a test to see if area and power reports match.
 #say "root: $1 \t$2";
             $self->{_data}->{root}->{name}    = $1;
-            $self->{_data}->{root}->{leakage} = $2;
-            $self->{_data}->{root}->{active}  = $3;
+            $self->{_data}->{root}->{leakage}->{total} = $2;
+            $self->{_data}->{root}->{active}->{total}  = $3;
+            $self->{_data}->{root}->{active}->{sum_leaves} = 0;
 
         }
 
         if ( $line =~ /^\s\s$regexp/ ) {
             $self->{_data}->{leaf}->{$1}->{leakage} = $2;
             $self->{_data}->{leaf}->{$1}->{active}  = $3;
-
+            $self->{_data}->{root}->{leakage}->{sum_leaves} += $2;
+            $self->{_data}->{root}->{active}->{sum_leaves} += $3;
         }
     }
 
     close $fh;
+
+    croak "Power input report '$filename' was empty, please check it." if (!defined $self->{_data}->{root}->{active}->{total});
 
     return $filename;
 
@@ -354,7 +378,7 @@ sub _gather_entries {
     my $code;
 
   SKIP_HEADER: while (<$fh>) {
-        last if (/-----/);
+      last if (/-----/);
     }
 
   PARSE_ENTRIES: while ( my $line = <$fh> ) {
@@ -429,6 +453,77 @@ sub _gather_slack {
 
 }
 
+# Extract the information from the final.rpt file
+sub _gather_final {
+    my ( $self, $fname ) = @_;
+
+    print "Gathering messages in file '$fname'\n" if DEBUG;
+
+    open my $fh, '<', $fname
+      or croak "Could not open file '$fname' for reading: $!";
+
+    my $match_col;
+
+    my $line;
+
+    # We want to know in what column the total ('final') data is present.
+    # We need to autodetect this because it differes depending on the flow type that was run
+    DETECT_COLUMN: while ($line = <$fh>) {
+        if ($line =~ /Metric/) {
+            my @columns = split /\s+/, $line;
+            # Use an index hash to find what the index is of the column we're looking for
+            my %indhash;
+            @indhash{@columns} = (0 .. $#columns);
+
+            $match_col = $indhash{'final'};
+
+            last;
+        }
+    }
+
+    # Data begins until next empty line
+    FETCH_DATA : while ($line = <$fh>) {
+        if ($line =~ /====/) {
+            # Skip separator lines
+            next;
+        } elsif ($line eq "\n") {
+            # Stop processing on empty line beacuse we need to switch the handling of the data from here on (other format)
+            last;
+        } else {
+            # Data -> process it
+            # First the metric (everything before the :)
+            my @data = split /:/, $line;
+            my $metric = $data[0];
+
+            # Remove leading spaces in the metric;
+            $metric =~ s/^\s+//;
+
+            # Then the values
+            my @columns = split /\s+/, $data[1];
+
+            my $value  = $columns[$match_col];
+
+            $self->{_final}->{$metric} = $value;
+        }
+    }
+
+    # TODO Check if we need to strip the untis from the metric and put them on another place in the hash.
+
+    # skip 3 lines
+    #$line = <$fh>;
+    #$line = <$fh>;
+    #$line = <$fh>;
+
+    # TODO Fetch the totals and store them too.
+    #PARSE_TOTALS: while ($line = <$fh>) {
+    #    if ($line =~ /^([^:]):\s+(\.+)/) {
+    #        $self->{_final}->{$1} = $2;
+    #    }
+    #}
+
+    close $fh;
+}
+
 # Nicely print a string
 sub _format_str {
     my ( $self, $val ) = @_;
@@ -460,6 +555,21 @@ sub _sort_data {
 
     $self->{_presentation}->{namelength} = 0;
 
+    # Insert an entry for the toplevel so that it get reported if required
+    my ($top_area, $top_active, $top_leakage);
+    $top_area    = $self->{_data}->{root}->{area}->{total}    - $self->{_data}->{root}->{area}->{sum_leaves}    if (defined $self->{_data}->{root}->{area});
+    $top_active  = $self->{_data}->{root}->{active}->{total}  - $self->{_data}->{root}->{active}->{sum_leaves}  if (defined $self->{_data}->{root}->{active});
+    $top_leakage = $self->{_data}->{root}->{leakage}->{total} - $self->{_data}->{root}->{leakage}->{sum_leaves} if (defined $self->{_data}->{root}->{leakage});
+
+    # Ensure the right format is used
+    $top_area    = sprintf("%d", $top_area)       if (defined $top_area);
+    $top_active  = sprintf("%1.3f", $top_active)  if (defined $top_active);
+    $top_leakage = sprintf("%1.3f", $top_leakage) if (defined $top_leakage);
+
+    $self->{_data}->{leaf}->{'toplevel'}->{area} = $top_area;
+    $self->{_data}->{leaf}->{'toplevel'}->{active} = $top_active;
+    $self->{_data}->{leaf}->{'toplevel'}->{leakage} = $top_leakage;
+
     foreach my $entry ( keys %{$self->{_data}->{leaf}} ) {
         my $value      = $self->{_data}->{leaf}->{$entry}->{$key};
         my $percentage = $value / $total * 100;
@@ -489,6 +599,8 @@ sub _sort_data {
 }
 1;
 
+# ABSTRACT: Perl module to parse Cadence synthesis tool logfiles
+
 __END__
 
 =pod
@@ -499,7 +611,7 @@ Text::Cadenceparser - Perl module to parse Cadence synthesis tool logfiles
 
 =head1 VERSION
 
-version 1.06
+version 1.12
 
 =head1 SYNOPSIS
 
@@ -530,6 +642,9 @@ list all first-level design units that contribute to the active power consumptio
 have a power consumption of more that 5% of the total power. The units that contribute less
 than 5% of the power will be merged into a single block and their resulting power consumption is also
 listed.
+
+For the power, area and leakage of the toplevel design (meaning the total figure minus the numbers
+reported for the subunits) an entry 'toplevel' is added to the report.
 
 =head1 METHODS
 
@@ -609,6 +724,10 @@ Report the slack of the synthesis run for a specific clock net
 =head2 C<report()>
 
 Reports the reports/logs that are read
+
+=head2 C<get_final($key)>
+
+Report the valus of a C<$key> that was extracted from the final.rpt report. Returns the value or C<undef> in case the value does not exist.
 
 =head1 AUTHOR
 
